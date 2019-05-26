@@ -64,13 +64,41 @@ readtemp() {
 }
 
 int
-main(void) {
+readbat(int apmfd, char **batstring, int *batterylife) {
 	struct apm_power_info info;
+
+	ioctl(apmfd, APM_IOC_GETPOWER, &info);
+	// printf("info.battery_life: %d\nstate: %d\nac_state: %d\nminutes_left: %d\n", info.battery_life, info.battery_state, info.ac_state, info.minutes_left);
+	*batterylife = info.battery_life;
+
+	switch (info.ac_state)
+	{
+	case APM_AC_OFF:
+		*batstring = "-";
+		break;
+	case APM_AC_ON:
+		*batstring = "+";
+		break;
+	default:
+		*batstring = "U";
+		break;
+	}
+
+	if (info.ac_state == 0 && info.battery_life < 15) {
+		*batstring = "!!!";
+	}
+
+	return 0;
+}
+
+int
+main(void) {
 	int apmfd;
 	time_t rawtime;
 	struct tm *timeinfo;
 	char timestr[17];
-	char *batstring;
+	char *batstring = "";
+	int batterypercent;
 	int scrno;
 	char status[80];
 	xcb_connection_t *conn;
@@ -90,38 +118,18 @@ main(void) {
 		exit(1);
 	}
 
-	temp = readtemp();
-
 	apmfd = open("/dev/apm", O_RDONLY);
 
 	while (1) {
-		ioctl(apmfd, APM_IOC_GETPOWER, &info);
-		// printf("info.battery_life: %d\nstate: %d\nac_state: %d\nminutes_left: %d\n", info.battery_life, info.battery_state, info.ac_state, info.minutes_left);
-
-		switch (info.ac_state)
-		{
-		case APM_AC_OFF:
-			batstring = "-";
-			break;
-		case APM_AC_ON:
-			batstring = "+";
-			break;
-		default:
-			batstring = "U";
-			break;
-		}
-
-		if (info.ac_state == 0 && info.battery_life < 15) {
-			batstring = "!!!";
-		}
-
+		temp = readtemp();
+		readbat(apmfd, &batstring, &batterypercent);
 		time(&rawtime);
 		timeinfo = localtime(&rawtime);
 		strftime(timestr, 17, "%F %R", timeinfo);
 
 		// snprintf(status, 80, "Bat %s%d%% | %d°C | Vol %d%% | %s", batstring, bat, temp, vol & 0x7f, timestr);
 
-		snprintf(status, 80, "Bat %s%d%% | %d°C | %s", batstring, info.battery_life, temp, timestr);
+		snprintf(status, 80, "Bat %s%d%% | %d°C | %s", batstring, batterypercent, temp, timestr);
 		// printf("%s\n", status);
 
 		xcb_void_cookie_t cookie;
