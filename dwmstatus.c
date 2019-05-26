@@ -155,6 +155,10 @@ main(void) {
 	}
 
 	apmfd = open("/dev/apm", O_RDONLY);
+	if (apmfd == -1) {
+		perror("opening /dev/apm");
+		exit(1);
+	}
 
 	while (1) {
 		temp = readtemp();
