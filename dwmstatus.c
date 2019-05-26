@@ -62,7 +62,7 @@ settitle(xcb_connection_t *conn, xcb_screen_t *screen, char *status) {
 	xcb_flush(conn);
 	if (NULL != xcb_request_check(conn, cookie)) {
 		printf("Couldn't set X server's root window name\n");
-		exit(-1);
+		exit(1);
 	}
 }
 
