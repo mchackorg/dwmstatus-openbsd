@@ -82,7 +82,7 @@ readtemp() {
 	return 0;
 }
 
-int
+void
 readbat(int apmfd, char **batstring, int *batterylife) {
 	struct apm_power_info info;
 
@@ -105,8 +105,6 @@ readbat(int apmfd, char **batstring, int *batterylife) {
 	if (info.ac_state == 0 && info.battery_life < 15) {
 		*batstring = "!!!";
 	}
-
-	return 0;
 }
 
 int
