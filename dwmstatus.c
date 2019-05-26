@@ -46,6 +46,23 @@ sigcatch(int sig) {
 	sigcode = sig;
 }
 
+void
+settitle(xcb_connection_t *conn, xcb_screen_t *screen, char *status) {
+	xcb_void_cookie_t cookie;
+
+	cookie = xcb_change_property_checked(conn, XCB_PROP_MODE_REPLACE,
+					     screen->root,
+					     XCB_ATOM_WM_NAME,
+					     XCB_ATOM_STRING, 8,
+					     strlen(status), status);
+
+	xcb_flush(conn);
+	if (NULL != xcb_request_check(conn, cookie)) {
+		printf("Couldn't set X server's root window name\n");
+		exit(-1);
+	}
+}
+
 int
 readtemp() {
 	struct sensordev sensordev;
@@ -147,19 +164,7 @@ main(void) {
 			 batterypercent, temp, timestr);
 		// printf("%s\n", status);
 
-		xcb_void_cookie_t cookie;
-
-		cookie = xcb_change_property_checked(conn, XCB_PROP_MODE_REPLACE,
-						     screen->root,
-						     XCB_ATOM_WM_NAME,
-						     XCB_ATOM_STRING, 8,
-						     strlen(status), status);
-
-		xcb_flush(conn);
-		if (NULL != xcb_request_check(conn, cookie)) {
-			printf("Couldn't set X server's root window name\n");
-			exit(-1);
-		}
+		settitle(conn, screen, status);
 
 		// Interrupted if we're sent a SIGHUP
 		sleep(10);
