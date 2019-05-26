@@ -22,8 +22,7 @@ int sigcode;
 void sigcatch(int);
 
 void
-sigcatch(int sig)
-{
+sigcatch(int sig) {
 	sigcode = sig;
 }
 
@@ -68,7 +67,6 @@ readbat(int apmfd, char **batstring, int *batterylife) {
 	struct apm_power_info info;
 
 	ioctl(apmfd, APM_IOC_GETPOWER, &info);
-	// printf("info.battery_life: %d\nstate: %d\nac_state: %d\nminutes_left: %d\n", info.battery_life, info.battery_state, info.ac_state, info.minutes_left);
 	*batterylife = info.battery_life;
 
 	switch (info.ac_state)
@@ -127,15 +125,17 @@ main(void) {
 		timeinfo = localtime(&rawtime);
 		strftime(timestr, 17, "%F %R", timeinfo);
 
-		// snprintf(status, 80, "Bat %s%d%% | %d°C | Vol %d%% | %s", batstring, bat, temp, vol & 0x7f, timestr);
-
-		snprintf(status, 80, "Bat %s%d%% | %d°C | %s", batstring, batterypercent, temp, timestr);
+		snprintf(status, 80, "Bat %s%d%% | %d°C | %s", batstring,
+			 batterypercent, temp, timestr);
 		// printf("%s\n", status);
 
 		xcb_void_cookie_t cookie;
 
-		cookie = xcb_change_property_checked(conn, XCB_PROP_MODE_REPLACE, screen->root, XCB_ATOM_WM_NAME,
-						     XCB_ATOM_STRING, 8, strlen(status), status);
+		cookie = xcb_change_property_checked(conn, XCB_PROP_MODE_REPLACE,
+						     screen->root,
+						     XCB_ATOM_WM_NAME,
+						     XCB_ATOM_STRING, 8,
+						     strlen(status), status);
 
 		xcb_flush(conn);
 		if (NULL != xcb_request_check(conn, cookie)) {
