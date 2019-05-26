@@ -39,7 +39,10 @@
 
 int sigcode;
 
-void sigcatch(int);
+static void	sigcatch(int);
+static void	settitle(xcb_connection_t *, xcb_screen_t *, char *);
+static int	readtemp(void);
+static void	readbat(int, char **, int *);
 
 void
 sigcatch(int sig) {
@@ -64,7 +67,7 @@ settitle(xcb_connection_t *conn, xcb_screen_t *screen, char *status) {
 }
 
 int
-readtemp() {
+readtemp(void) {
 	struct sensordev sensordev;
 	struct sensor sensor;
 	size_t sdlen, slen;
